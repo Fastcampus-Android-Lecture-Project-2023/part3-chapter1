@@ -16,7 +16,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
 import com.google.common.util.concurrent.ListenableFuture
 
-class Camera(private val context: Context){
+class Camera(private val context: Context) : ActivityCompat.OnRequestPermissionsResultCallback {
     private val preview by lazy {
         Preview.Builder()
             .build()
@@ -38,7 +38,17 @@ class Camera(private val context: Context){
         val context = layout.context
         previewView = PreviewView(context)
         layout.addView(previewView)
-        openPreview()
+        permissionCheck(context)
+    }
+
+    private fun permissionCheck(context: Context) {
+        val permissionList = listOf(Manifest.permission.CAMERA)
+
+        if (!PermissionUtil.checkPermission(context, permissionList)) {
+            PermissionUtil.requestPermission(context as Activity, permissionList)
+        } else {
+            openPreview()
+        }
     }
 
     private fun openPreview() {
@@ -64,4 +74,26 @@ class Camera(private val context: Context){
         }
     }
 
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        var flag = true
+        if (grantResults.isNotEmpty()) {
+            for ((i, _) in permissions.withIndex()) {
+                if (grantResults[i] != PackageManager.PERMISSION_GRANTED) {
+                    flag = false
+                }
+            }
+
+            if (flag) {
+                openPreview()
+            } else {
+                Toast.makeText(context, "권한을 허용해야합니다.", Toast.LENGTH_SHORT).show()
+                (context as Activity).finish()
+            }
+
+        }
+    }
 }

@@ -18,4 +18,12 @@ class MainActivity : AppCompatActivity() {
         camera.initCamera(binding.cameraLayout)
     }
 
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        camera.onRequestPermissionsResult(requestCode, permissions, grantResults)
+    }
 }
