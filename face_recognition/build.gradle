@@ -8,7 +8,7 @@ android {
     compileSdk 33
 
     defaultConfig {
-        minSdk 23
+        minSdk 28
         targetSdk 33
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -42,4 +42,5 @@ dependencies {
     implementation "androidx.camera:camera-view:${camerax_version}"
     implementation "androidx.camera:camera-extensions:${camerax_version}"
 
+    implementation 'com.google.mlkit:face-detection:16.1.5'
 }
