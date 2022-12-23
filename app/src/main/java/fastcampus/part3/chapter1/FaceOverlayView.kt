@@ -1,5 +1,6 @@
 package fastcampus.part3.chapter1
 
+import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.*
 import android.graphics.PorterDuff.Mode
@@ -23,6 +24,11 @@ class FaceOverlayView @JvmOverloads constructor(
         strokeWidth = 10F
         pathEffect = DashPathEffect(floatArrayOf(10f, 10f), 0F)
     }
+    private val progressPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = Color.YELLOW
+        style = Paint.Style.STROKE
+        strokeWidth = 10F
+    }
     private val maskPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         xfermode = PorterDuffXfermode(Mode.DST_OUT)
     }
@@ -33,6 +39,7 @@ class FaceOverlayView @JvmOverloads constructor(
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         drawOverlay(canvas)
+        drawProgress(canvas)
     }
 
     fun setSize(rectF: RectF, sizeF: SizeF, pointF: PointF) {
@@ -62,6 +69,16 @@ class FaceOverlayView @JvmOverloads constructor(
         postInvalidate()
     }
 
+    fun setProgress(progress: Float) {
+        ValueAnimator.ofFloat(this.progress, progress).apply {
+            duration = ANIMATE_DURATION
+            addUpdateListener {
+                this@FaceOverlayView.progress = it.animatedValue as Float
+                invalidate()
+            }
+        }.start()
+    }
+
     fun reset() {
         facePath.reset()
         progress = 0F
@@ -80,4 +97,17 @@ class FaceOverlayView @JvmOverloads constructor(
         canvas.drawPath(facePath, facePaint)
     }
 
+    private fun drawProgress(canvas: Canvas) {
+        val measure = PathMeasure(facePath, true)
+        val pathLength = measure.length
+        val total = pathLength - (pathLength * (progress / 100))
+        val pathEffect = DashPathEffect(floatArrayOf(pathLength, pathLength), total)
+        progressPaint.pathEffect = pathEffect
+
+        canvas.drawPath(facePath, progressPaint)
+    }
+
+    companion object {
+        private const val ANIMATE_DURATION = 500L
+    }
 }
