@@ -7,7 +7,9 @@ import android.content.pm.PackageManager
 import android.util.Log
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.activity.ComponentActivity
 import androidx.camera.core.CameraSelector
+import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
@@ -15,6 +17,9 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
 import com.google.common.util.concurrent.ListenableFuture
+import fastcampus.part3.face_recognition.recognition.FaceAnalyzer
+import fastcampus.part3.face_recognition.recognition.FaceAnalyzerListener
+import java.util.concurrent.Executors
 
 class Camera(private val context: Context) : ActivityCompat.OnRequestPermissionsResultCallback {
     private val preview by lazy {
@@ -34,8 +39,12 @@ class Camera(private val context: Context) : ActivityCompat.OnRequestPermissions
     private lateinit var cameraProviderFuture: ListenableFuture<ProcessCameraProvider>
     private lateinit var previewView: PreviewView
 
-    fun initCamera(layout: ViewGroup) {
+    private var cameraExecutor = Executors.newSingleThreadExecutor()
+    private var listener: FaceAnalyzerListener? = null
+
+    fun initCamera(layout: ViewGroup, listener: FaceAnalyzerListener) {
         val context = layout.context
+        this.listener = listener
         previewView = PreviewView(context)
         layout.addView(previewView)
         permissionCheck(context)
@@ -69,6 +78,39 @@ class Camera(private val context: Context) : ActivityCompat.OnRequestPermissions
                 cameraSelector,
                 preview,
             )
+        } catch (e: Exception) {
+            Log.e("Camera", "binding failed", e)
+        }
+    }
+
+    fun startFaceDetect() {
+        val cameraProvider = cameraProviderFuture.get()
+        val faceAnalyzer = FaceAnalyzer((context as ComponentActivity).lifecycle, previewView, listener)
+        val analysisUseCase = ImageAnalysis.Builder()
+            .build()
+            .also {
+                it.setAnalyzer(
+                    cameraExecutor,
+                    faceAnalyzer
+                )
+            }
+
+        try {
+            cameraProvider.bindToLifecycle(
+                context as LifecycleOwner,
+                cameraSelector,
+                preview,
+                analysisUseCase,
+            )
+        } catch (e: Exception) {
+            Log.e("Camera", "binding failed", e)
+        }
+    }
+
+    fun stopFaceDetect() {
+        try {
+            cameraProviderFuture.get().unbindAll()
+            previewView.releasePointerCapture()
         } catch (e: Exception) {
             Log.e("Camera", "binding failed", e)
         }
