@@ -20,7 +20,8 @@ internal class FaceAnalyzer(
     lifecycle: Lifecycle,
     private val preview: PreviewView,
     private val listener: FaceAnalyzerListener?
-)  : ImageAnalysis.Analyzer{
+) : ImageAnalysis.Analyzer {
+    
     private var widthScaleFactor = 1.0f
     private var heightScaleFactor = 1.0f
 

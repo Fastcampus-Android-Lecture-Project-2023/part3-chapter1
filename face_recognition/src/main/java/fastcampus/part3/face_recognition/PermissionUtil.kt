@@ -24,7 +24,7 @@ object PermissionUtil {
     }
 
     fun requestPermission(activity: Activity, permissionList: List<String>){
-        ActivityCompat.requestPermissions(activity, permissionList.toTypedArray(), 10)
+        ActivityCompat.requestPermissions(activity, permissionList.toTypedArray(), 1001)
     }
 
 }
